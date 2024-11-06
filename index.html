@@ -3,55 +3,127 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Webcam con IA</title>
-  <style>
-    /* Estilos básicos para el diseño */
-    #webcam {
-      width: 640px;
-      height: 480px;
-      border: 1px solid black;
-      margin-bottom: 10px;
-    }
-    #captured-image {
-      width: 640px;
-      height: 480px;
-      border: 1px solid black;
-      margin-bottom: 10px;
-    }
-    #controls {
-      margin-top: 20px;
-    }
-    #result {
-      font-size: 1.2em;
-      margin-top: 10px;
-      color: blue;
-    }
-  </style>
+  <title>IA Teachable Machine con Webcam</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
 </head>
 <body>
-
-  <h1>Captura de Webcam con IA</h1>
-  
-  <!-- Video de la Webcam -->
-  <video id="webcam" autoplay playsinline></video>
-  
-  <!-- Canvas donde se mostrará la imagen capturada y el resultado de la IA -->
-  <canvas id="captured-image"></canvas>
-  
-  <!-- Controles para capturar y ajustar -->
-  <div id="controls">
-    <button id="capture-btn">Capturar Imagen</button>
-    <label for="slider">Ajuste (Slider): </label>
-    <input type="range" id="slider" min="0" max="100" value="50">
-  </div>
-  
-  <!-- Mensaje de resultado -->
+  <h1>Mi IA de Teachable Machine</h1>
+  <video id="webcam" width="640" height="480" autoplay></video>
+  <canvas id="captured-image" width="640" height="480"></canvas>
+  <button id="capture-btn">Capturar Imagen</button>
   <div id="result"></div>
-  
-  <!-- Importación de TensorFlow.js -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-  
-  <!-- Enlace al archivo de JavaScript -->
-  <script src="script.js"></script>
+  <input id="slider" type="range" min="0" max="100" step="1" value="50" />
+
+  <script>
+    // Referencias a los elementos de la interfaz
+    const video = document.getElementById("webcam");
+    const canvas = document.getElementById("captured-image");
+    const captureBtn = document.getElementById("capture-btn");
+    const resultDiv = document.getElementById("result");
+    const slider = document.getElementById("slider");
+
+    // Variable para almacenar el modelo de IA
+    let model, webcam;
+
+    // Cargar el modelo de Teachable Machine
+    async function loadModel() {
+      resultDiv.textContent = "Cargando modelo de IA...";
+      try {
+        // Cargar el modelo de Teachable Machine (asegúrate de que la ruta sea correcta)
+        model = await tmImage.load('modelo/model.json');  // Ruta donde guardaste tu modelo
+        resultDiv.textContent = "Modelo de IA cargado.";
+      } catch (error) {
+        console.error("Error al cargar el modelo de IA:", error);
+        resultDiv.textContent = "Error al cargar el modelo de IA. Verifique la consola.";
+      }
+    }
+
+    // Llamar a la función para cargar el modelo
+    loadModel();
+
+    // Acceso a la webcam
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        console.error("Error al acceder a la webcam:", err);
+        alert("No se pudo acceder a la webcam.");
+      });
+
+    // Función para capturar la imagen de la webcam y mostrarla en el canvas
+    function captureImage() {
+      const context = canvas.getContext("2d");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    }
+
+    // Función que inicia el temporizador de 3 segundos para capturar la imagen
+    function startTimer() {
+      resultDiv.textContent = "Capturando imagen en 3 segundos...";
+      setTimeout(() => {
+        captureImage();
+        if (model) { // Verifica que el modelo esté cargado antes de procesar la imagen
+          processImage();
+        } else {
+          resultDiv.textContent = "El modelo de IA no está cargado.";
+        }
+      }, 3000);
+    }
+
+    // Procesar la imagen capturada con el modelo de Teachable Machine
+    async function processImage() {
+      if (!model) {
+        resultDiv.textContent = "El modelo de IA no está cargado.";
+        return;
+      }
+
+      resultDiv.textContent = "Procesando imagen con IA...";
+
+      // Convertir el canvas en un tensor para TensorFlow.js
+      const inputImage = tf.browser.fromPixels(canvas);
+
+      try {
+        // Realizar la predicción con el modelo de Teachable Machine
+        const predictions = await model.predict(inputImage);  // Se asume que el modelo es de clasificación de imágenes
+
+        // Mostrar resultados en el HTML
+        displayPredictions(predictions);
+
+      } catch (error) {
+        console.error("Error al procesar la imagen:", error);
+        resultDiv.textContent = "Error al procesar la imagen con IA.";
+      } finally {
+        // Limpiar el tensor de la imagen para liberar memoria
+        inputImage.dispose();
+      }
+    }
+
+    // Función para mostrar las predicciones de la IA en el HTML
+    function displayPredictions(predictions) {
+      const topPrediction = predictions[0]; // Obtener la predicción con la mayor probabilidad
+      resultDiv.textContent = `Predicción: ${topPrediction.className}, Confianza: ${topPrediction.probability.toFixed(2)}`;
+    }
+
+    // Función para reiniciar el flujo y permitir nueva captura
+    function reset() {
+      resultDiv.textContent = "";
+      const context = canvas.getContext("2d");
+      context.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
+    }
+
+    // Evento para el botón de captura
+    captureBtn.addEventListener("click", () => {
+      reset();
+      startTimer();
+    });
+
+    // Evento para el slider (puedes usar este valor en IA real)
+    slider.addEventListener("input", (event) => {
+      console.log("Valor del slider:", event.target.value);
+    });
+  </script>
 </body>
 </html>
