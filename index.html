@@ -63,7 +63,7 @@
     }
 
     // Función que inicia el temporizador de 3 segundos para capturar la imagen
-  function startTimer() {
+    function startTimer() {
   resultDiv.textContent = "Capturando imagen en 3 segundos...";
   
   // Mover el slider automáticamente durante los 3 segundos
@@ -74,7 +74,6 @@
       slider.value = sliderValue;  // Actualizar el valor del slider
     }
   }, 30);  // Cambiar el valor del slider cada 30 ms (esto dura 3 segundos para llegar a 100)
-
   setTimeout(() => {
     clearInterval(sliderInterval); // Detener el movimiento del slider después de 3 segundos
     captureImage();
@@ -106,15 +105,17 @@
       } catch (error) {
         console.error("Error al procesar la imagen:", error);
         resultDiv.textContent = "Error al procesar la imagen con IA.";
-      } finally {
-        // Limpiar el tensor de la imagen para liberar memoria
-        inputImage.dispose();
       }
     }
 
     // Función para mostrar las predicciones de la IA en el HTML
     function displayPredictions(predictions) {
-      const topPrediction = predictions[0]; // Obtener la predicción con la mayor probabilidad
+      let topPrediction = predictions[0];
+      for (var i = 0; i < predictions.length; i++){
+        if (predictions[i].probability.toFixed(2)>topPrediction.probability.toFixed(2)){
+          topPrediction=predictions[i];
+        }
+      } // Obtener la predicción con la mayor probabilidad
       resultDiv.textContent = `Predicción: ${topPrediction.className}, Confianza: ${topPrediction.probability.toFixed(2)}`;
     }
 
