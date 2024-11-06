@@ -63,17 +63,28 @@
     }
 
     // Función que inicia el temporizador de 3 segundos para capturar la imagen
-    function startTimer() {
-      resultDiv.textContent = "Capturando imagen en 3 segundos...";
-      setTimeout(() => {
-        captureImage();
-        if (model) { // Verifica que el modelo esté cargado antes de procesar la imagen
-          processImage();
-        } else {
-          resultDiv.textContent = "El modelo de IA no está cargado.";
-        }
-      }, 3000);
+  function startTimer() {
+  resultDiv.textContent = "Capturando imagen en 3 segundos...";
+  
+  // Mover el slider automáticamente durante los 3 segundos
+  let sliderValue = 0; // Empezar el valor del slider en 0
+  sliderInterval = setInterval(() => {
+    if (sliderValue < 100) {  // Asegurarse de que el slider llegue a 100
+      sliderValue += 1;
+      slider.value = sliderValue;  // Actualizar el valor del slider
     }
+  }, 30);  // Cambiar el valor del slider cada 30 ms (esto dura 3 segundos para llegar a 100)
+
+  setTimeout(() => {
+    clearInterval(sliderInterval); // Detener el movimiento del slider después de 3 segundos
+    captureImage();
+    if (model) { // Verifica que el modelo esté cargado antes de procesar la imagen
+      processImage();
+    } else {
+      resultDiv.textContent = "El modelo de IA no está cargado.";
+    }
+  }, 3000);  // Después de 3 segundos, captura la imagen y procesa
+}
 
     // Procesar la imagen capturada con el modelo de Teachable Machine
     async function processImage() {
