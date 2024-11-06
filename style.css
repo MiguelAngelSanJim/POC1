@@ -1,0 +1,41 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+  }
+  
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+  }
+  
+  .container {
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+  }
+  
+  video, canvas {
+    border: 1px solid #ddd;
+    width: 100%;
+    max-width: 400px;
+    margin-top: 10px;
+  }
+  
+  .controls {
+    margin-top: 15px;
+  }
+  
+  button, input[type="range"] {
+    margin: 10px;
+  }
+  
+  #result {
+    margin-top: 20px;
+    font-size: 1.2em;
+    color: #333;
+  }

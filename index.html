@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webcam con IA</title>
+  <style>
+    /* Estilos básicos para el diseño */
+    #webcam {
+      width: 640px;
+      height: 480px;
+      border: 1px solid black;
+      margin-bottom: 10px;
+    }
+    #captured-image {
+      width: 640px;
+      height: 480px;
+      border: 1px solid black;
+      margin-bottom: 10px;
+    }
+    #controls {
+      margin-top: 20px;
+    }
+    #result {
+      font-size: 1.2em;
+      margin-top: 10px;
+      color: blue;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Captura de Webcam con IA</h1>
+  
+  <!-- Video de la Webcam -->
+  <video id="webcam" autoplay playsinline></video>
+  
+  <!-- Canvas donde se mostrará la imagen capturada y el resultado de la IA -->
+  <canvas id="captured-image"></canvas>
+  
+  <!-- Controles para capturar y ajustar -->
+  <div id="controls">
+    <button id="capture-btn">Capturar Imagen</button>
+    <label for="slider">Ajuste (Slider): </label>
+    <input type="range" id="slider" min="0" max="100" value="50">
+  </div>
+  
+  <!-- Mensaje de resultado -->
+  <div id="result"></div>
+  
+  <!-- Importación de TensorFlow.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  
+  <!-- Enlace al archivo de JavaScript -->
+  <script src="script.js"></script>
+</body>
+</html>
