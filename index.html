@@ -1,141 +1,28 @@
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IA Teachable Machine con Webcam</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>Mi IA de Teachable Machine</h1>
-  <video id="webcam" width="640" height="480" autoplay></video>
-  <canvas id="captured-image" width="640" height="480"></canvas>
+
+  <div class="container">
+    <video id="webcam" autoplay></video>
+    <canvas id="captured-image"></canvas>
+  </div>
+
   <button id="capture-btn">Capturar Imagen</button>
   <div id="result"></div>
-  <input id="slider" type="range" min="0" max="100" step="1" value="50" />
+  <input id="slider" type="range" min="0" max="100" step="1" value="0">
+
+
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
 
-  <script>
-    // Referencias a los elementos de la interfaz
-    const video = document.getElementById("webcam");
-    const canvas = document.getElementById("captured-image");
-    const captureBtn = document.getElementById("capture-btn");
-    const resultDiv = document.getElementById("result");
-    const slider = document.getElementById("slider");
-
-    // Variable para almacenar el modelo de IA
-    let model, webcam;
-
-    // Cargar el modelo de Teachable Machine
-    async function loadModel() {
-      resultDiv.textContent = "Cargando modelo de IA...";
-      try {
-        // Cargar el modelo de Teachable Machine (asegúrate de que la ruta sea correcta)
-        model = await tmImage.load('./ia/model.json','./ia/metadata.json');  // Ruta donde guardaste tu modelo
-        resultDiv.textContent = "Modelo de IA cargado.";
-      } catch (error) {
-        console.error("Error al cargar el modelo de IA:", error);
-        resultDiv.textContent = "Error al cargar el modelo de IA. Verifique la consola.";
-      }
-    }
-
-    // Llamar a la función para cargar el modelo
-    loadModel();
-
-    // Acceso a la webcam
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        video.srcObject = stream;
-      })
-      .catch(err => {
-        console.error("Error al acceder a la webcam:", err);
-        alert("No se pudo acceder a la webcam.");
-      });
-
-    // Función para capturar la imagen de la webcam y mostrarla en el canvas
-    function captureImage() {
-      const context = canvas.getContext("2d");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    }
-
-    // Función que inicia el temporizador de 3 segundos para capturar la imagen
-    function startTimer() {
-  resultDiv.textContent = "Capturando imagen en 3 segundos...";
-  
-  // Mover el slider automáticamente durante los 3 segundos
-  let sliderValue = 0; // Empezar el valor del slider en 0
-  sliderInterval = setInterval(() => {
-    if (sliderValue < 100) {  // Asegurarse de que el slider llegue a 100
-      sliderValue += 1;
-      slider.value = sliderValue;  // Actualizar el valor del slider
-    }
-  }, 30);  // Cambiar el valor del slider cada 30 ms (esto dura 3 segundos para llegar a 100)
-  setTimeout(() => {
-    clearInterval(sliderInterval); // Detener el movimiento del slider después de 3 segundos
-    captureImage();
-    if (model) { // Verifica que el modelo esté cargado antes de procesar la imagen
-      processImage();
-    } else {
-      resultDiv.textContent = "El modelo de IA no está cargado.";
-    }
-  }, 3000);  // Después de 3 segundos, captura la imagen y procesa
-}
-
-    // Procesar la imagen capturada con el modelo de Teachable Machine
-    async function processImage() {
-      if (!model) {
-        resultDiv.textContent = "El modelo de IA no está cargado.";
-        return;
-      }
-
-      resultDiv.textContent = "Procesando imagen con IA...";
-
-
-      try {
-        // Realizar la predicción con el modelo de Teachable Machine
-        const predictions = await model.predict(canvas);  // Se asume que el modelo es de clasificación de imágenes
-
-        // Mostrar resultados en el HTML
-        displayPredictions(predictions);
-
-      } catch (error) {
-        console.error("Error al procesar la imagen:", error);
-        resultDiv.textContent = "Error al procesar la imagen con IA.";
-      }
-    }
-
-    // Función para mostrar las predicciones de la IA en el HTML
-    function displayPredictions(predictions) {
-      let topPrediction = predictions[0];
-      for (var i = 0; i < predictions.length; i++){
-        if (predictions[i].probability.toFixed(2)>topPrediction.probability.toFixed(2)){
-          topPrediction=predictions[i];
-        }
-      } // Obtener la predicción con la mayor probabilidad
-      resultDiv.textContent = `Predicción: ${topPrediction.className}, Confianza: ${topPrediction.probability.toFixed(2)}`;
-    }
-
-    // Función para reiniciar el flujo y permitir nueva captura
-    function reset() {
-      resultDiv.textContent = "";
-      const context = canvas.getContext("2d");
-      context.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
-    }
-
-    // Evento para el botón de captura
-    captureBtn.addEventListener("click", () => {
-      reset();
-      startTimer();
-    });
-
-    // Evento para el slider (puedes usar este valor en IA real)
-    slider.addEventListener("input", (event) => {
-      console.log("Valor del slider:", event.target.value);
-    });
-  </script>
+ 
+  <script src="script.js"></script>
 </body>
 </html>
