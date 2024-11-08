@@ -6,14 +6,13 @@ const resultDiv = document.getElementById("result");
 const slider = document.getElementById("slider");
 
 // Variable para almacenar el modelo de IA
-let net = null;
+let model, webcam;
 
-// Cargar el modelo de IA desde la carpeta local
+// Cargar el modelo de Teachable Machine
 async function loadModel() {
   resultDiv.textContent = "Cargando modelo de IA...";
   try {
-    // Cargar el modelo desde el archivo JSON local
-    net = await tf.loadGraphModel('model/pose_model.json');
+    model = await tmImage.load('./ia/model.json', './ia/metadata.json');
     resultDiv.textContent = "Modelo de IA cargado.";
   } catch (error) {
     console.error("Error al cargar el modelo de IA:", error);
@@ -21,7 +20,6 @@ async function loadModel() {
   }
 }
 
-// Llamar a la función para cargar el modelo
 loadModel();
 
 // Acceso a la webcam
@@ -45,10 +43,20 @@ function captureImage() {
 // Función que inicia el temporizador de 3 segundos para capturar la imagen
 function startTimer() {
   resultDiv.textContent = "Capturando imagen en 3 segundos...";
+  let sliderValue = 0;
   
+  // Animar el slider durante los 3 segundos
+  const sliderInterval = setInterval(() => {
+    if (sliderValue < 100) {
+      sliderValue += 1;
+      slider.value = sliderValue;
+    }
+  }, 30);
+
   setTimeout(() => {
+    clearInterval(sliderInterval);
     captureImage();
-    if (net) { // Verifica que el modelo esté cargado antes de procesar la imagen
+    if (model) {
       processImage();
     } else {
       resultDiv.textContent = "El modelo de IA no está cargado.";
@@ -56,61 +64,40 @@ function startTimer() {
   }, 3000);
 }
 
-// Procesar la imagen capturada con TensorFlow.js
+// Procesar la imagen capturada con el modelo de Teachable Machine
 async function processImage() {
-  if (!net) {
+  if (!model) {
     resultDiv.textContent = "El modelo de IA no está cargado.";
     return;
   }
-  
+
   resultDiv.textContent = "Procesando imagen con IA...";
-  
-  // Convertir el canvas en un tensor para TensorFlow.js
-  const inputImage = tf.browser.fromPixels(canvas);
-  
+
   try {
-    // Realizar la predicción con el modelo (por ejemplo, pose estimation)
-    const predictions = await net.executeAsync(inputImage.expandDims(0));
-  
-    // Dibujar resultados en el canvas
-    drawKeypoints(predictions);
-  
-    resultDiv.textContent = "Procesamiento completado. Pose detectada.";
+    const predictions = await model.predict(canvas);
+    displayPredictions(predictions);
   } catch (error) {
     console.error("Error al procesar la imagen:", error);
     resultDiv.textContent = "Error al procesar la imagen con IA.";
-  } finally {
-    // Limpiar el tensor de la imagen para liberar memoria
-    inputImage.dispose();
   }
 }
 
-// Función para dibujar puntos clave en el canvas
-function drawKeypoints(predictions) {
-  const context = canvas.getContext("2d");
-  context.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas antes de dibujar
-  context.drawImage(video, 0, 0, canvas.width, canvas.height); // Redibujar la imagen capturada
-  
-  context.fillStyle = "red";
-  context.strokeStyle = "red";
-  
-  // Recorrer las predicciones (keypoints) y dibujarlas en el canvas
-  predictions.forEach(keypoint => {
-    const scoreThreshold = 0.5; // Umbral de confianza (ajusta según necesites)
-    if (keypoint.score > scoreThreshold) {
-      const { y, x } = keypoint.position;
-      context.beginPath();
-      context.arc(x, y, 5, 0, 2 * Math.PI);
-      context.fill();
+// Función para mostrar las predicciones de la IA en el HTML
+function displayPredictions(predictions) {
+  let topPrediction = predictions[0];
+  for (let i = 0; i < predictions.length; i++) {
+    if (predictions[i].probability.toFixed(2) > topPrediction.probability.toFixed(2)) {
+      topPrediction = predictions[i];
     }
-  });
+  }
+  resultDiv.textContent = `Predicción: ${topPrediction.className}, Confianza: ${topPrediction.probability.toFixed(2)}`;
 }
 
 // Función para reiniciar el flujo y permitir nueva captura
 function reset() {
   resultDiv.textContent = "";
   const context = canvas.getContext("2d");
-  context.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
+  context.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 // Evento para el botón de captura
@@ -119,7 +106,7 @@ captureBtn.addEventListener("click", () => {
   startTimer();
 });
 
-// Evento para el slider (puedes usar este valor en IA real)
+// Evento para el slider
 slider.addEventListener("input", (event) => {
   console.log("Valor del slider:", event.target.value);
 });
