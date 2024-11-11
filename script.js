@@ -12,7 +12,7 @@ let model, webcam;
 async function loadModel() {
   resultDiv.textContent = "Cargando modelo de IA...";
   try {
-    model = await tmImage.load('./ia/model.json', './ia/metadata.json');
+    model = await tmImage.load('./model.json', './metadata.json');
     resultDiv.textContent = "Modelo de IA cargado.";
   } catch (error) {
     console.error("Error al cargar el modelo de IA:", error);
